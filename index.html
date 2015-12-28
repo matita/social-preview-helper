@@ -1,0 +1,42 @@
+<!DOCTYPE html>
+<html>
+  <head>
+  </head>
+  <body>
+    <p>
+      <a id="bookmarklet" class="bookmarklet" href="javascript:(function(){ var u = '--host--?u='+encodeURIComponent(location.href); var w = window.open(u); window.addEventListener('message', function(e) { console.log('message', e); if (u.indexOf(e.origin) == -1) return; w.postMessage({head:document.head.innerHTML, body:document.body.innerHTML}, u); }, false); })();">
+        Bookmarklet
+      </a>
+    </p>
+
+    <script>
+      document.getElementById('bookmarklet').href = document.getElementById('bookmarklet').href.replace('--host--', location.href.split('?')[0]);
+
+
+      if (window.opener) {
+        var params = location.search.substr(1).split('&')
+          .reduce(function(p, e) {
+            e = e.split('=');
+            p[decodeURIComponent(e[0])] = decodeURIComponent(e[1]);
+            return p;
+          }, {}),
+          origin = params.u;
+
+        window.addEventListener('message', receiveMessage, false);
+        window.opener.postMessage('loaded', origin);
+
+        function receiveMessage(e) {
+          if (origin.indexOf(e.origin) == -1)
+            return;
+          
+          var data = e.data;
+          var doc = document.implementation.createHTMLDocument();
+          doc.head.innerHTML = data.head;
+          doc.body.innerHTML = data.body;
+
+          alert(doc.title);
+        }
+      }
+    </script>
+  </body>
+</html>
